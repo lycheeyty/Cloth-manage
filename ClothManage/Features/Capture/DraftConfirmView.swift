@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// 发布页：多图时顶部缩略滚轮逐张确认（PRD 3.1.1 多图确认交互）
 struct DraftConfirmView: View {
@@ -8,9 +9,21 @@ struct DraftConfirmView: View {
 
     @State private var currentIndex = 0
 
+    /// 越界安全的当前草稿绑定：发布/取消清空数组后，
+    /// 残留的输入框绑定再读写也不会崩溃
     private var current: Binding<ClothingDraft>? {
         guard drafts.indices.contains(currentIndex) else { return nil }
-        return $drafts[currentIndex]
+        let index = currentIndex
+        return Binding(
+            get: {
+                drafts.indices.contains(index) ? drafts[index] : ClothingDraft(originalImage: UIImage())
+            },
+            set: { newValue in
+                if drafts.indices.contains(index) {
+                    drafts[index] = newValue
+                }
+            }
+        )
     }
 
     var body: some View {

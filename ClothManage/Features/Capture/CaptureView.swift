@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import PhotosUI
 import SwiftData
 import AVFoundation
@@ -150,7 +151,7 @@ struct CaptureView: View {
             processingText = images.count > 1
                 ? "自动抠图中 \(index + 1)/\(images.count)…"
                 : "自动抠图中…"
-            let resized = image.resizedIfNeeded(maxDimension: 2048)
+            let resized = image.resizedIfNeeded(maxDimension: 1600)
             let cutout = await CutoutService.removeBackground(from: resized)
             newDrafts.append(ClothingDraft(
                 originalImage: resized,
@@ -163,29 +164,61 @@ struct CaptureView: View {
     }
 
     private func publish() {
-        for draft in drafts {
-            let usesCutout = !draft.useOriginal && draft.cutoutImage != nil
-            let displayData = usesCutout
-                ? draft.displayImage.pngData()
-                : draft.displayImage.jpegData(compressionQuality: 0.85)
-            guard let data = displayData,
-                  let fileName = try? ImageStore.save(data, fileExtension: usesCutout ? "png" : "jpg")
-            else { continue }
+        // 先收起键盘，避免输入框在视图销毁过程中回写数据
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil
+        )
+        let toSave = drafts
+        processingText = "正在保存…"
 
-            var originalFileName: String?
-            if usesCutout, let originalData = draft.originalImage.jpegData(compressionQuality: 0.85) {
-                originalFileName = try? ImageStore.save(originalData)
+        Task {
+            // 图片编码与写盘放到后台线程，逐张 autoreleasepool 控制内存峰值
+            let saved: [SavedDraft] = await Task.detached(priority: .userInitiated) {
+                var result: [SavedDraft] = []
+                for draft in toSave {
+                    autoreleasepool {
+                        let usesCutout = !draft.useOriginal && draft.cutoutImage != nil
+                        let displayData = usesCutout
+                            ? draft.displayImage.pngData()
+                            : draft.displayImage.jpegData(compressionQuality: 0.85)
+                        guard let data = displayData,
+                              let fileName = try? ImageStore.save(data, fileExtension: usesCutout ? "png" : "jpg")
+                        else { return }
+
+                        var originalFileName: String?
+                        if usesCutout, let originalData = draft.originalImage.jpegData(compressionQuality: 0.85) {
+                            originalFileName = try? ImageStore.save(originalData)
+                        }
+                        result.append(SavedDraft(
+                            name: draft.name.trimmingCharacters(in: .whitespaces),
+                            category: draft.category,
+                            imageFileName: fileName,
+                            originalImageFileName: originalFileName
+                        ))
+                    }
+                }
+                return result
+            }.value
+
+            // SwiftData 插入回到主线程
+            for record in saved {
+                context.insert(ClothingItem(
+                    name: record.name,
+                    category: record.category,
+                    imageFileName: record.imageFileName,
+                    originalImageFileName: record.originalImageFileName
+                ))
             }
-
-            context.insert(ClothingItem(
-                name: draft.name.trimmingCharacters(in: .whitespaces),
-                category: draft.category,
-                imageFileName: fileName,
-                originalImageFileName: originalFileName
-            ))
+            reset()
+            onPublished()
         }
-        reset()
-        onPublished()
+    }
+
+    private struct SavedDraft {
+        let name: String
+        let category: ClothingCategory
+        let imageFileName: String
+        let originalImageFileName: String?
     }
 
     private func reset() {
