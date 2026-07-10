@@ -22,12 +22,24 @@ struct DraftConfirmView: View {
             if let draft = current {
                 ScrollView {
                     VStack(alignment: .leading, spacing: AppSpacing.m) {
-                        Image(uiImage: draft.wrappedValue.image)
+                        Image(uiImage: draft.wrappedValue.displayImage)
                             .resizable()
                             .scaledToFit()
                             .frame(maxWidth: .infinity, maxHeight: 320)
+                            .background(AppColor.surface)
                             .clipShape(RoundedRectangle(cornerRadius: AppRadius.card))
                             .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
+
+                        if draft.wrappedValue.cutoutFailed {
+                            Label("未能识别主体，已使用原图", systemImage: "info.circle")
+                                .font(AppFont.caption)
+                                .foregroundStyle(AppColor.textSecondary)
+                        } else {
+                            Toggle("保留原图（不使用抠图结果）", isOn: draft.useOriginal)
+                                .font(AppFont.caption)
+                                .foregroundStyle(AppColor.textSecondary)
+                                .tint(AppColor.accent)
+                        }
 
                         Text("分类")
                             .font(AppFont.sectionTitle)
@@ -62,10 +74,11 @@ struct DraftConfirmView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: AppSpacing.s) {
                 ForEach(Array(drafts.enumerated()), id: \.element.id) { index, draft in
-                    Image(uiImage: draft.image)
+                    Image(uiImage: draft.displayImage)
                         .resizable()
                         .scaledToFill()
                         .frame(width: 56, height: 56)
+                        .background(AppColor.surface)
                         .clipShape(RoundedRectangle(cornerRadius: AppRadius.control))
                         .overlay {
                             RoundedRectangle(cornerRadius: AppRadius.control)
