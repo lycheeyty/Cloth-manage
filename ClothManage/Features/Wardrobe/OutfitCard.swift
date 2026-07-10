@@ -8,10 +8,8 @@ struct OutfitCard: View {
         AppColor.surface
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
-                if let cover = outfit.coverImageFileName, let image = ImageStore.load(cover) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
+                if let cover = outfit.coverImageFileName {
+                    ThumbnailImage(fileName: cover)
                 } else {
                     Image(systemName: "square.grid.2x2")
                         .font(.largeTitle)

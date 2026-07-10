@@ -133,6 +133,8 @@ struct ProfileView: View {
             ImageStore.delete(file)
             removed += 1
         }
+        // 缩略图缓存一并清空，会按需重新生成
+        ThumbnailStore.shared.clear()
         return removed
     }
 }

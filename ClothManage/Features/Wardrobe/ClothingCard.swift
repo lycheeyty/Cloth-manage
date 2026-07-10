@@ -8,15 +8,7 @@ struct ClothingCard: View {
         AppColor.surface
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
-                if let image = ImageStore.load(item.imageFileName) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    Image(systemName: "tshirt")
-                        .font(.largeTitle)
-                        .foregroundStyle(AppColor.textSecondary)
-                }
+                ThumbnailImage(fileName: item.imageFileName)
             }
             .clipShape(RoundedRectangle(cornerRadius: AppRadius.card))
             .overlay(alignment: .topLeading) {

@@ -148,27 +148,41 @@ struct WardrobeView: View {
     // MARK: - Feed
 
     private var feed: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: AppSpacing.m) {
-                ForEach(entries) { entry in
-                    switch entry {
-                    case .item(let item):
-                        itemCell(item)
-                    case .outfit(let outfit):
-                        outfitCell(outfit)
+        ScrollViewReader { scrollProxy in
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: AppSpacing.m) {
+                    ForEach(entries) { entry in
+                        switch entry {
+                        case .item(let item):
+                            itemCell(item)
+                                .transition(.scale(scale: 0.85).combined(with: .opacity))
+                        case .outfit(let outfit):
+                            outfitCell(outfit)
+                                .transition(.scale(scale: 0.85).combined(with: .opacity))
+                        }
+                    }
+                }
+                .id("wardrobeTop")
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: items.count + outfits.count)
+                .padding(.horizontal, AppSpacing.l)
+                .padding(.bottom, AppSpacing.xl)
+                .background(
+                    GeometryReader { proxy in
+                        Color.clear.preference(
+                            key: WardrobeScrollOffsetKey.self,
+                            value: proxy.frame(in: .named("wardrobeScroll")).minY
+                        )
+                    }
+                )
+            }
+            // 新内容入库后回到顶部，配合入场动画定位新卡片（PRD 3.1.3）
+            .onChange(of: items.count + outfits.count) { old, new in
+                if new > old {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        scrollProxy.scrollTo("wardrobeTop", anchor: .top)
                     }
                 }
             }
-            .padding(.horizontal, AppSpacing.l)
-            .padding(.bottom, AppSpacing.xl)
-            .background(
-                GeometryReader { proxy in
-                    Color.clear.preference(
-                        key: WardrobeScrollOffsetKey.self,
-                        value: proxy.frame(in: .named("wardrobeScroll")).minY
-                    )
-                }
-            )
         }
         .coordinateSpace(name: "wardrobeScroll")
         .onPreferenceChange(WardrobeScrollOffsetKey.self) { offset in
@@ -238,19 +252,11 @@ struct WardrobeView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: AppSpacing.s) {
                         ForEach(selectedItems) { item in
-                            Group {
-                                if let image = ImageStore.load(item.imageFileName) {
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFill()
-                                } else {
-                                    AppColor.surfaceSecondary
-                                }
-                            }
-                            .frame(width: 44, height: 44)
-                            .background(AppColor.surface)
-                            .clipShape(RoundedRectangle(cornerRadius: AppRadius.control))
-                            .onTapGesture { toggleSelection(item) }
+                            ThumbnailImage(fileName: item.imageFileName)
+                                .frame(width: 44, height: 44)
+                                .background(AppColor.surface)
+                                .clipShape(RoundedRectangle(cornerRadius: AppRadius.control))
+                                .onTapGesture { toggleSelection(item) }
                         }
                     }
                     .padding(.horizontal, AppSpacing.l)
