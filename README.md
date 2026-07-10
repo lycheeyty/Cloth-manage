@@ -1,0 +1,46 @@
+# 衣橱管理 App（ClothManage）
+
+极简的个人衣橱管理 iOS 应用：拍照/上传衣物 → 自动抠图 → 分类归档 → 瀑布流浏览 → 穿搭组合。
+
+- 需求文档：[docs/PRD.md](docs/PRD.md)
+- 开发计划：[docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md)
+
+## 如何在你的 Mac 上运行（新手指南）
+
+### 你需要准备
+
+1. 一台 **Mac 电脑**（iOS 开发只能在 Mac 上进行，Windows 不行）
+2. 从 Mac App Store 免费安装 **Xcode**（版本 16 或更高，安装包较大，约 10GB+）
+3. 一个 Apple ID（你日常用的就行，真机调试用，免费）
+
+### 运行步骤
+
+1. 把本仓库克隆（或下载 ZIP 解压）到 Mac 上
+2. 双击打开 `ClothManage.xcodeproj`，Xcode 会自动加载工程
+3. Xcode 顶部工具栏中间，把运行目标选为一个模拟器（如 **iPhone 15 Pro**）
+4. 按 `Cmd + R`（或点左上角 ▶ 按钮），等待编译完成，模拟器会自动启动并打开 App
+
+### 在自己的 iPhone 上运行（可选）
+
+1. 用数据线连接 iPhone 和 Mac，运行目标选择你的 iPhone
+2. Xcode 菜单 `Settings → Accounts` 登录你的 Apple ID
+3. 点击左侧文件树最顶部的蓝色工程图标 → `Signing & Capabilities` → Team 选择你的个人团队（Personal Team）
+4. `Cmd + R` 运行；首次安装需在 iPhone 的 `设置 → 通用 → VPN与设备管理` 中信任开发者证书
+
+### 遇到报错怎么办
+
+把 Xcode 报错信息（红色感叹号的那几行文字，或截图）直接发给 Claude，会根据报错修复后重新推送代码，你拉取最新代码（`git pull`）再试即可。
+
+## 当前进度
+
+- [x] 工程骨架：三 Tab 架构（衣橱 / 添加 / 我的）
+- [x] 数据层：SwiftData 模型（衣物、组合）+ 本地图片存储
+- [x] 添加衣服：相册多选（最多 9 张）→ 逐张确认分类/名称 → 发布入库
+- [x] 衣橱：双列 3:4 卡片网格、空状态引导、详情页（编辑/删除）
+- [x] 我的：衣物统计、分类分布、图片占用
+- [ ] 相机拍摄
+- [ ] 端侧自动抠图（Vision 主体分割）
+- [ ] Mock AI 分类预填
+- [ ] 瀑布流分类筛选 Tab、顶部滚动显隐
+- [ ] 创建组合（多选 → 场景标签 → 拼图卡片）
+- [ ] 存储管理操作、账号管理、Mock 订阅页
