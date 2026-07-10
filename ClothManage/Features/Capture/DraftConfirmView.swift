@@ -21,32 +21,36 @@ struct DraftConfirmView: View {
 
             if let draft = current {
                 ScrollView {
-                    VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: AppSpacing.m) {
                         Image(uiImage: draft.wrappedValue.image)
                             .resizable()
                             .scaledToFit()
-                            .frame(maxHeight: 320)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .frame(maxWidth: .infinity, maxHeight: 320)
+                            .clipShape(RoundedRectangle(cornerRadius: AppRadius.card))
+                            .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
 
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("分类")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            categoryGrid(for: draft)
+                        Text("分类")
+                            .font(AppFont.sectionTitle)
+                            .foregroundStyle(AppColor.textSecondary)
+                            .padding(.top, AppSpacing.s)
+                        categoryGrid(for: draft)
 
-                            Text("产品名（选填）")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            TextField("如：白色针织开衫", text: draft.name)
-                                .textFieldStyle(.roundedBorder)
-                        }
+                        Text("产品名（选填）")
+                            .font(AppFont.sectionTitle)
+                            .foregroundStyle(AppColor.textSecondary)
+                            .padding(.top, AppSpacing.s)
+                        TextField("如：白色针织开衫", text: draft.name)
+                            .textFieldStyle(ThemedTextFieldStyle())
                     }
-                    .padding()
+                    .padding(AppSpacing.l)
                 }
             }
 
             bottomBar
         }
+        .background(AppColor.background)
+        .navigationTitle("确认信息")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("取消", action: onCancel)
@@ -56,44 +60,34 @@ struct DraftConfirmView: View {
 
     private var thumbnailStrip: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: AppSpacing.s) {
                 ForEach(Array(drafts.enumerated()), id: \.element.id) { index, draft in
                     Image(uiImage: draft.image)
                         .resizable()
                         .scaledToFill()
                         .frame(width: 56, height: 56)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .clipShape(RoundedRectangle(cornerRadius: AppRadius.control))
                         .overlay {
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(index == currentIndex ? Color.accentColor : .clear, lineWidth: 2)
+                            RoundedRectangle(cornerRadius: AppRadius.control)
+                                .stroke(index == currentIndex ? AppColor.accent : .clear, lineWidth: 2)
                         }
                         .onTapGesture { currentIndex = index }
                 }
             }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
+            .padding(.horizontal, AppSpacing.l)
+            .padding(.vertical, AppSpacing.s)
         }
     }
 
     private func categoryGrid(for draft: Binding<ClothingDraft>) -> some View {
-        let columns = [GridItem(.adaptive(minimum: 72), spacing: 8)]
-        return LazyVGrid(columns: columns, spacing: 8) {
+        let columns = [GridItem(.adaptive(minimum: 76), spacing: AppSpacing.s)]
+        return LazyVGrid(columns: columns, spacing: AppSpacing.s) {
             ForEach(ClothingCategory.allCases) { category in
-                Button {
-                    draft.wrappedValue.category = category
-                } label: {
-                    Text(category.displayName)
-                        .font(.subheadline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                        .background(
-                            draft.wrappedValue.category == category
-                                ? Color.accentColor.opacity(0.2)
-                                : Color(.secondarySystemBackground),
-                            in: RoundedRectangle(cornerRadius: 8)
-                        )
-                }
-                .buttonStyle(.plain)
+                CategoryChip(
+                    title: category.displayName,
+                    isSelected: draft.wrappedValue.category == category,
+                    action: { draft.wrappedValue.category = category }
+                )
             }
         }
     }
@@ -102,18 +96,18 @@ struct DraftConfirmView: View {
         HStack {
             if drafts.count > 1 {
                 Text("\(currentIndex + 1) / \(drafts.count)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(AppFont.caption)
+                    .foregroundStyle(AppColor.textSecondary)
             }
             Spacer()
             if drafts.count > 1 && currentIndex < drafts.count - 1 {
                 Button("下一张") { currentIndex += 1 }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(SecondaryButtonStyle())
             }
             Button("发布 (\(drafts.count) 件)", action: onPublish)
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PrimaryButtonStyle())
         }
-        .padding()
-        .background(.bar)
+        .padding(AppSpacing.l)
+        .background(AppColor.surface)
     }
 }

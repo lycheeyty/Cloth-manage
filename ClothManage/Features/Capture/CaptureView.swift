@@ -17,8 +17,12 @@ struct CaptureView: View {
             Group {
                 if isLoading {
                     ProgressView("正在载入图片…")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(AppColor.background)
+                        .toolbar(.hidden, for: .navigationBar)
                 } else if drafts.isEmpty {
                     pickerPrompt
+                        .toolbar(.hidden, for: .navigationBar)
                 } else {
                     DraftConfirmView(
                         drafts: $drafts,
@@ -27,7 +31,6 @@ struct CaptureView: View {
                     )
                 }
             }
-            .navigationTitle("添加衣服")
         }
         .onChange(of: pickerItems) { _, newItems in
             guard !newItems.isEmpty else { return }
@@ -36,21 +39,29 @@ struct CaptureView: View {
     }
 
     private var pickerPrompt: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "camera.viewfinder")
-                .font(.system(size: 64))
-                .foregroundStyle(.secondary)
-            Text("拍下或上传衣物照片")
-                .font(.headline)
+        VStack(spacing: AppSpacing.l) {
+            EmptyStateIcon(systemName: "camera.viewfinder")
+            Text("添加衣服")
+                .font(AppFont.pageTitle)
+                .foregroundStyle(AppColor.textPrimary)
+            Text("上传衣物照片，自动归入你的衣橱")
+                .font(AppFont.body)
+                .foregroundStyle(AppColor.textSecondary)
             PhotosPicker(selection: $pickerItems, maxSelectionCount: 9, matching: .images) {
                 Label("从相册选择（最多 9 张）", systemImage: "photo.on.rectangle")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, AppSpacing.xl)
+                    .padding(.vertical, 14)
+                    .background(AppColor.accent, in: Capsule())
             }
-            .buttonStyle(.borderedProminent)
+            .padding(.top, AppSpacing.s)
             Text("相机拍摄与自动抠图即将上线")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+                .font(AppFont.caption)
+                .foregroundStyle(AppColor.textSecondary)
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AppColor.background)
     }
 
     private func loadDrafts(from items: [PhotosPickerItem]) async {

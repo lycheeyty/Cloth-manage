@@ -9,34 +9,39 @@ struct ClothingDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: AppSpacing.xl) {
                 if let image = ImageStore.load(item.imageFileName) {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFit()
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .padding(.horizontal)
+                        .clipShape(RoundedRectangle(cornerRadius: AppRadius.card))
+                        .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
+                        .padding(.horizontal, AppSpacing.l)
                 }
 
-                VStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: AppSpacing.m) {
+                    Text("产品名")
+                        .font(AppFont.sectionTitle)
+                        .foregroundStyle(AppColor.textSecondary)
                     TextField("产品名（选填）", text: $item.name)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(ThemedTextFieldStyle())
 
-                    Picker("分类", selection: $item.category) {
-                        ForEach(ClothingCategory.allCases) { category in
-                            Text(category.displayName).tag(category)
-                        }
-                    }
-                    .pickerStyle(.menu)
+                    Text("分类")
+                        .font(AppFont.sectionTitle)
+                        .foregroundStyle(AppColor.textSecondary)
+                        .padding(.top, AppSpacing.s)
+                    categoryChips
 
                     LabeledContent("添加时间", value: item.createdAt.formatted(date: .abbreviated, time: .shortened))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(AppFont.caption)
+                        .foregroundStyle(AppColor.textSecondary)
+                        .padding(.top, AppSpacing.s)
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, AppSpacing.l)
             }
-            .padding(.vertical)
+            .padding(.vertical, AppSpacing.l)
         }
+        .background(AppColor.background)
         .navigationTitle(item.name.isEmpty ? "衣物详情" : item.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -56,6 +61,19 @@ struct ClothingDetailView: View {
                 }
                 context.delete(item)
                 dismiss()
+            }
+        }
+    }
+
+    private var categoryChips: some View {
+        let columns = [GridItem(.adaptive(minimum: 76), spacing: AppSpacing.s)]
+        return LazyVGrid(columns: columns, spacing: AppSpacing.s) {
+            ForEach(ClothingCategory.allCases) { category in
+                CategoryChip(
+                    title: category.displayName,
+                    isSelected: item.category == category,
+                    action: { item.category = category }
+                )
             }
         }
     }

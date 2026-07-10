@@ -5,7 +5,7 @@ struct ClothingCard: View {
     let item: ClothingItem
 
     var body: some View {
-        Color(.secondarySystemBackground)
+        AppColor.surface
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
                 if let image = ImageStore.load(item.imageFileName) {
@@ -15,20 +15,22 @@ struct ClothingCard: View {
                 } else {
                     Image(systemName: "tshirt")
                         .font(.largeTitle)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(AppColor.textSecondary)
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.card))
             .overlay(alignment: .topLeading) {
                 if !item.name.isEmpty {
                     Text(item.name)
-                        .font(.caption)
+                        .font(AppFont.caption)
+                        .foregroundStyle(AppColor.textPrimary)
                         .lineLimit(1)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(.thinMaterial, in: Capsule())
-                        .padding(8)
+                        .padding(.horizontal, AppSpacing.s)
+                        .padding(.vertical, AppSpacing.xs)
+                        .background(AppColor.surface.opacity(0.92), in: Capsule())
+                        .padding(AppSpacing.s)
                 }
             }
+            .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
     }
 }

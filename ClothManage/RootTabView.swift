@@ -17,6 +17,7 @@ struct RootTabView: View {
                 .tabItem { Label("我的", systemImage: "person") }
                 .tag(2)
         }
+        .tint(AppColor.accent)
     }
 }
 
