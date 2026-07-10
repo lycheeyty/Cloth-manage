@@ -54,10 +54,24 @@ struct DraftConfirmView: View {
                                 .tint(AppColor.accent)
                         }
 
-                        Text("分类")
-                            .font(AppFont.sectionTitle)
-                            .foregroundStyle(AppColor.textSecondary)
-                            .padding(.top, AppSpacing.s)
+                        HStack(spacing: AppSpacing.s) {
+                            Text("分类")
+                                .font(AppFont.sectionTitle)
+                                .foregroundStyle(AppColor.textSecondary)
+                            if draft.wrappedValue.aiRecognized {
+                                Label("AI 已识别 · 可修改", systemImage: "sparkles")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundStyle(AppColor.mint)
+                                    .padding(.horizontal, AppSpacing.s)
+                                    .padding(.vertical, 3)
+                                    .background(AppColor.mintSoft, in: Capsule())
+                            } else {
+                                Text("请选择分类")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundStyle(AppColor.accent)
+                            }
+                        }
+                        .padding(.top, AppSpacing.s)
                         categoryGrid(for: draft)
 
                         Text("产品名（选填）")

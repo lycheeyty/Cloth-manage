@@ -153,11 +153,20 @@ struct CaptureView: View {
                 : "自动抠图中…"
             let resized = image.resizedIfNeeded(maxDimension: 1600)
             let cutout = await CutoutService.removeBackground(from: resized)
-            newDrafts.append(ClothingDraft(
+            var draft = ClothingDraft(
                 originalImage: resized,
                 cutoutImage: cutout,
                 cutoutFailed: cutout == nil
-            ))
+            )
+            // AI 分类预填（首版 Mock）：识别成功则预填分类与建议名称
+            if let result = await MockClassificationService.shared.classify(cutout ?? resized) {
+                draft.category = result.category
+                if let suggested = result.suggestedName {
+                    draft.name = suggested
+                }
+                draft.aiRecognized = true
+            }
+            newDrafts.append(draft)
         }
         drafts = newDrafts
         processingText = nil
@@ -235,6 +244,8 @@ struct ClothingDraft: Identifiable {
     var cutoutFailed: Bool = false
     /// 用户选择保留原图（不用抠图结果）
     var useOriginal: Bool = false
+    /// AI（Mock）识别成功并预填了分类/名称
+    var aiRecognized: Bool = false
     var name: String = ""
     var category: ClothingCategory = .other
 
