@@ -2,22 +2,33 @@ import SwiftUI
 import UIKit
 
 /// 设计系统 · 颜色令牌（自动适配深色模式）
-/// 基调：暖白纸感底色 + 陶土色点缀，突出衣物图片本身
+/// 方案 F「靛紫主导」：长春花靛紫为主色，薄荷绿点缀，海军蓝文字，纯白底
+/// 深色模式为深靛蓝底（非灰黑），与主色系统一
 enum AppColor {
     /// 页面底色
-    static let background = dynamic(light: 0xF7F4EF, dark: 0x191817)
+    static let background = dynamic(light: 0xFFFFFF, dark: 0x101235)
     /// 卡片、输入框等表面
-    static let surface = dynamic(light: 0xFFFFFF, dark: 0x262421)
+    static let surface = dynamic(light: 0xF4F3FB, dark: 0x1A1C48)
     /// 次级表面：占位、未选中态
-    static let surfaceSecondary = dynamic(light: 0xEFEAE2, dark: 0x33302C)
-    /// 主文字
-    static let textPrimary = dynamic(light: 0x2D2A26, dark: 0xF2EFEA)
+    static let surfaceSecondary = dynamic(light: 0xE7E6F7, dark: 0x272A60)
+    /// 主文字：海军蓝
+    static let textPrimary = dynamic(light: 0x16174B, dark: 0xEDEEFA)
     /// 次级文字
-    static let textSecondary = dynamic(light: 0x8A847B, dark: 0xA39D93)
-    /// 主题色：陶土色
-    static let accent = dynamic(light: 0xC06E4A, dark: 0xD98A66)
-    /// 主题色浅底：选中态背景
-    static let accentSoft = dynamic(light: 0xF3E3DA, dark: 0x4A342A)
+    static let textSecondary = dynamic(light: 0x71739B, dark: 0x9A9DC7)
+
+    /// 主色：长春花靛紫
+    static let accent = dynamic(light: 0x5D5FEF, dark: 0x7C7EF8)
+    /// 主色上的文字（浅色模式白字，深色模式深靛蓝字）
+    static let onAccent = dynamic(light: 0xFFFFFF, dark: 0x0E103A)
+    /// 主色浅底：次按钮背景
+    static let accentSoft = dynamic(light: 0xE6E7FD, dark: 0x272A60)
+    /// 主色深字：次按钮文字
+    static let accentDeep = dynamic(light: 0x3B3ECF, dark: 0xB3B4FC)
+
+    /// 点缀色：薄荷绿（选中胶囊、AI 标识等小面积）
+    static let mint = dynamic(light: 0x0D9D62, dark: 0x4FE39E)
+    /// 点缀色浅底
+    static let mintSoft = dynamic(light: 0xDFF9EC, dark: 0x143C2C)
 
     private static func dynamic(light: UInt32, dark: UInt32) -> Color {
         Color(UIColor { traits in
@@ -55,8 +66,8 @@ enum AppRadius {
 
 /// 设计系统 · 字体
 enum AppFont {
-    /// 页面大标题：衬线体，杂志编辑感
-    static let pageTitle = Font.system(size: 28, weight: .semibold, design: .serif)
+    /// 页面大标题：粗壮无衬线，现代品牌感
+    static let pageTitle = Font.system(size: 28, weight: .bold)
     /// 区块小标题
     static let sectionTitle = Font.system(size: 14, weight: .medium)
     static let body = Font.system(size: 16)

@@ -1,11 +1,11 @@
 import SwiftUI
 
-/// 主按钮：陶土色胶囊
+/// 主按钮：靛紫实色胶囊
 struct PrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 16, weight: .semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(AppColor.onAccent)
             .padding(.horizontal, AppSpacing.xl)
             .padding(.vertical, 14)
             .background(AppColor.accent, in: Capsule())
@@ -15,21 +15,20 @@ struct PrimaryButtonStyle: ButtonStyle {
     }
 }
 
-/// 次按钮：表面色胶囊 + 描边
+/// 次按钮：浅紫实色胶囊（无描边）
 struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 16, weight: .medium))
-            .foregroundStyle(AppColor.textPrimary)
+            .foregroundStyle(AppColor.accentDeep)
             .padding(.horizontal, AppSpacing.xl)
             .padding(.vertical, 14)
-            .background(AppColor.surface, in: Capsule())
-            .overlay(Capsule().stroke(AppColor.surfaceSecondary, lineWidth: 1))
+            .background(AppColor.accentSoft, in: Capsule())
             .opacity(configuration.isPressed ? 0.75 : 1)
     }
 }
 
-/// 分类/场景选择用小胶囊
+/// 分类/场景选择用小胶囊；选中态为薄荷绿点缀
 struct CategoryChip: View {
     let title: String
     let isSelected: Bool
@@ -39,10 +38,10 @@ struct CategoryChip: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
-                .foregroundStyle(isSelected ? AppColor.accent : AppColor.textPrimary)
+                .foregroundStyle(isSelected ? AppColor.mint : AppColor.textPrimary)
                 .padding(.horizontal, AppSpacing.l)
                 .padding(.vertical, AppSpacing.s)
-                .background(isSelected ? AppColor.accentSoft : AppColor.surfaceSecondary, in: Capsule())
+                .background(isSelected ? AppColor.mintSoft : AppColor.surfaceSecondary, in: Capsule())
         }
         .buttonStyle(.plain)
     }
@@ -55,7 +54,7 @@ struct EmptyStateIcon: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(AppColor.surfaceSecondary)
+                .fill(AppColor.accentSoft)
                 .frame(width: 120, height: 120)
             Image(systemName: systemName)
                 .font(.system(size: 48))
