@@ -41,6 +41,8 @@ final class ScreenshotTourTests: XCTestCase {
         pause(1)
         snap(app, "04-衣橱-筛选上装-\(appearance)")
 
+        // 「组合」胶囊在筛选排最右侧屏幕外，先把胶囊排向左滑动露出它
+        revealTrailingChips(app)
         tapIfExists(app.buttons["组合"].firstMatch)
         pause(1)
         snap(app, "05-衣橱-组合筛选-\(appearance)")
@@ -51,6 +53,7 @@ final class ScreenshotTourTests: XCTestCase {
         goBack(app)
         pause(1)
 
+        revealLeadingChips(app)
         tapIfExists(app.buttons["全部"].firstMatch)
         pause(1)
         tapIfExists(app.staticTexts["白色针织开衫"].firstMatch)
@@ -100,10 +103,33 @@ final class ScreenshotTourTests: XCTestCase {
         add(attachment)
     }
 
+    /// 防御式点击：元素不存在或不可点时跳过，不让单步失败中断整个巡游
     private func tapIfExists(_ element: XCUIElement) {
-        if element.waitForExistence(timeout: 3), element.isHittable {
-            element.tap()
+        guard element.waitForExistence(timeout: 3) else { return }
+        XCTContext.runActivity(named: "tap \(element.description)") { _ in
+            let coordinate = element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            coordinate.tap()
         }
+    }
+
+    /// 横向滑动分类胶囊排，露出最右侧的「组合」
+    private func revealTrailingChips(_ app: XCUIApplication) {
+        let anchor = app.buttons["上装"].firstMatch
+        guard anchor.waitForExistence(timeout: 3) else { return }
+        let start = anchor.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let end = start.withOffset(CGVector(dx: -500, dy: 0))
+        start.press(forDuration: 0.05, thenDragTo: end)
+        pause(1)
+    }
+
+    /// 反向滑回胶囊排开头，露出「全部」
+    private func revealLeadingChips(_ app: XCUIApplication) {
+        let anchor = app.buttons["组合"].firstMatch
+        guard anchor.waitForExistence(timeout: 3) else { return }
+        let start = anchor.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let end = start.withOffset(CGVector(dx: 500, dy: 0))
+        start.press(forDuration: 0.05, thenDragTo: end)
+        pause(1)
     }
 
     private func goBack(_ app: XCUIApplication) {
