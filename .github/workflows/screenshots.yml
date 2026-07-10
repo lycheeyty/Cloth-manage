@@ -3,6 +3,9 @@ name: Screenshots
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   screenshots:
     runs-on: macos-15
@@ -42,6 +45,54 @@ jobs:
             --path TestResults.xcresult \
             --output-path screenshots || true
           ls -la screenshots
+
+      - name: Rename screenshots by manifest
+        if: always()
+        run: |
+          python3 - <<'EOF'
+          import json, os, re, shutil
+
+          d = "screenshots"
+          manifest = os.path.join(d, "manifest.json")
+          if not os.path.exists(manifest):
+              raise SystemExit(0)
+          data = json.load(open(manifest))
+
+          def walk(o):
+              if isinstance(o, dict):
+                  if "exportedFileName" in o and "suggestedHumanReadableName" in o:
+                      yield o
+                  for v in o.values():
+                      yield from walk(v)
+              elif isinstance(o, list):
+                  for v in o:
+                      yield from walk(v)
+
+          for att in walk(data):
+              name = att["suggestedHumanReadableName"]
+              if not name.lower().endswith(".png"):
+                  continue
+              # 去掉附件名里的 UUID 后缀
+              name = re.sub(r"_0_[0-9A-Fa-f-]{36}", "", name)
+              src = os.path.join(d, att["exportedFileName"])
+              if os.path.exists(src):
+                  shutil.move(src, os.path.join(d, name))
+          EOF
+          ls screenshots
+
+      - name: Commit screenshots to repo
+        if: always()
+        run: |
+          git config user.name "screenshot-bot"
+          git config user.email "actions@users.noreply.github.com"
+          rm -rf docs/screenshots
+          mkdir -p docs/screenshots
+          find screenshots -maxdepth 1 -name '[0-9][0-9]-*.png' -exec cp {} docs/screenshots/ \;
+          ls docs/screenshots
+          git add docs/screenshots
+          git commit -m "chore: 更新 UI 截图 [skip ci]" || echo "nothing to commit"
+          git pull --rebase origin "$GITHUB_REF_NAME" || true
+          git push origin "HEAD:$GITHUB_REF_NAME"
 
       - name: Upload screenshots artifact
         if: always()
