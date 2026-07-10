@@ -63,6 +63,26 @@ struct CaptureView: View {
             guard !newItems.isEmpty else { return }
             Task { await loadFromLibrary(newItems) }
         }
+        .onAppear {
+            // 截图演示：直接填充确认页草稿（正常使用不会带该参数）
+            if CommandLine.arguments.contains("--seed-drafts"), drafts.isEmpty {
+                let cardigan = DemoSeeder.drawGarment(
+                    category: .top,
+                    color: UIColor(red: 0.93, green: 0.91, blue: 0.87, alpha: 1)
+                )
+                let dress = DemoSeeder.drawGarment(
+                    category: .dress,
+                    color: UIColor(red: 0.85, green: 0.62, blue: 0.65, alpha: 1)
+                )
+                var first = ClothingDraft(originalImage: cardigan, cutoutImage: cardigan)
+                first.aiRecognized = true
+                first.category = .top
+                first.name = "白色针织开衫"
+                var second = ClothingDraft(originalImage: dress, cutoutImage: dress)
+                second.category = .dress
+                drafts = [first, second]
+            }
+        }
     }
 
     // MARK: - 子视图

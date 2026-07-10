@@ -1,0 +1,37 @@
+name: Screenshots
+
+on:
+  workflow_dispatch:
+
+jobs:
+  screenshots:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run UI screenshot tour
+        run: |
+          xcodebuild test \
+            -project ClothManage.xcodeproj \
+            -scheme ClothManage \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export screenshot attachments
+        if: always()
+        run: |
+          mkdir -p screenshots
+          xcrun xcresulttool export attachments \
+            --path TestResults.xcresult \
+            --output-path screenshots || true
+          ls -la screenshots
+
+      - name: Upload screenshots artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: screenshots
+          if-no-files-found: warn

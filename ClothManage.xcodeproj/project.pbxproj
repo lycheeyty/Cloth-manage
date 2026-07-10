@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		CA0000000000000000000018 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CA0000000000000000000006 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA0000000000000000000005;
+			remoteInfo = ClothManage;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		CA0000000000000000000004 /* ClothManage.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClothManage.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA000000000000000000001A /* ClothManageUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClothManageUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +27,22 @@
 			path = ClothManage;
 			sourceTree = "<group>";
 		};
+		CA0000000000000000000019 /* ClothManageUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ClothManageUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		CA0000000000000000000008 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA0000000000000000000015 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				CA0000000000000000000002 /* ClothManage */,
+				CA0000000000000000000019 /* ClothManageUITests */,
 				CA0000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				CA0000000000000000000004 /* ClothManage.app */,
+				CA000000000000000000001A /* ClothManageUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +95,29 @@
 			productReference = CA0000000000000000000004 /* ClothManage.app */;
 			productType = "com.apple.product-type.application";
 		};
+		CA0000000000000000000010 /* ClothManageUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA0000000000000000000011 /* Build configuration list for PBXNativeTarget "ClothManageUITests" */;
+			buildPhases = (
+				CA0000000000000000000014 /* Sources */,
+				CA0000000000000000000015 /* Frameworks */,
+				CA0000000000000000000016 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA0000000000000000000017 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				CA0000000000000000000019 /* ClothManageUITests */,
+			);
+			name = ClothManageUITests;
+			packageProductDependencies = (
+			);
+			productName = ClothManageUITests;
+			productReference = CA000000000000000000001A /* ClothManageUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -81,6 +129,10 @@
 				TargetAttributes = {
 					CA0000000000000000000005 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					CA0000000000000000000010 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = CA0000000000000000000005;
 					};
 				};
 			};
@@ -100,12 +152,20 @@
 			projectRoot = "";
 			targets = (
 				CA0000000000000000000005 /* ClothManage */,
+				CA0000000000000000000010 /* ClothManageUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		CA0000000000000000000009 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA0000000000000000000016 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +182,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CA0000000000000000000014 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CA0000000000000000000017 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA0000000000000000000005 /* ClothManage */;
+			targetProxy = CA0000000000000000000018 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		CA000000000000000000000C /* Debug */ = {
@@ -236,7 +311,52 @@
 		};
 /* End XCBuildConfiguration section */
 
+		CA0000000000000000000012 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clothmanage.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = ClothManage;
+			};
+			name = Debug;
+		};
+		CA0000000000000000000013 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clothmanage.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = ClothManage;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section (UITests) */
+
 /* Begin XCConfigurationList section */
+		CA0000000000000000000011 /* Build configuration list for PBXNativeTarget "ClothManageUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA0000000000000000000012 /* Debug */,
+				CA0000000000000000000013 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		CA000000000000000000000A /* Build configuration list for PBXProject "ClothManage" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
