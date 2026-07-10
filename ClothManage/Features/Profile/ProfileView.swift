@@ -10,6 +10,7 @@ struct ProfileView: View {
 
     @State private var storageBytes: Int64 = 0
     @State private var cleanResult: Int?
+    @State private var showSubscription = false
 
     private var storageText: String {
         ByteCountFormatter.string(fromByteCount: storageBytes, countStyle: .file)
@@ -96,8 +97,15 @@ struct ProfileView: View {
             .scrollContentBackground(.hidden)
             .background(AppColor.background)
             .navigationTitle("我的")
+            .navigationDestination(isPresented: $showSubscription) {
+                SubscriptionView()
+            }
             .onAppear {
                 storageBytes = ImageStore.totalBytes()
+                // 截图巡游：启动参数直达订阅页（正常使用不带该参数）
+                if CommandLine.arguments.contains("--show-subscription") {
+                    showSubscription = true
+                }
             }
             .alert(
                 "清理完成",

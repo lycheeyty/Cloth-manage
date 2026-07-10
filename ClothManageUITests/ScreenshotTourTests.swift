@@ -78,25 +78,19 @@ final class ScreenshotTourTests: XCTestCase {
         app.tabBars.buttons["我的"].tap()
         pause(1)
         snap(app, "10-我的-\(appearance)")
-        // List 行要点整个 Button 容器，直接点 staticText 可能不触发导航
-        let memberRow = app.buttons.containing(.staticText, identifier: "衣橱会员").firstMatch
-        if memberRow.waitForExistence(timeout: 3) {
-            memberRow.tap()
-        } else {
-            tapIfExists(app.staticTexts["衣橱会员"].firstMatch)
-        }
-        pause(2)
-        snap(app, "11-订阅页-\(appearance)")
         app.terminate()
 
-        // ---- 第 3 段：发布确认页 ----
+        // ---- 第 3 段：发布确认页 + 订阅页（启动参数直达，不依赖 UI 点击）----
         app = XCUIApplication()
-        app.launchArguments = ["--seed-demo", "--seed-drafts", flag]
+        app.launchArguments = ["--seed-demo", "--seed-drafts", "--show-subscription", flag]
         app.launch()
         pause(2)
         app.tabBars.buttons["添加"].tap()
         pause(2)
         snap(app, "12-发布-确认页-\(appearance)")
+        app.tabBars.buttons["我的"].tap()
+        pause(2)
+        snap(app, "11-订阅页-\(appearance)")
         app.terminate()
     }
 
