@@ -28,6 +28,10 @@ struct WardrobeView: View {
     @AppStorage("wardrobeFilter") private var filter = "全部"
     @State private var showHeader = true
     @State private var lastOffset: CGFloat = 0
+    /// 多选模式（创建组合，PRD 3.3.1）
+    @State private var isSelecting = false
+    @State private var selectedItems: [ClothingItem] = []
+    @State private var showCompose = false
     var onAddTapped: () -> Void
 
     private let columns = [
@@ -70,6 +74,11 @@ struct WardrobeView: View {
             }
             .background(AppColor.background)
             .toolbar(.hidden, for: .navigationBar)
+            .safeAreaInset(edge: .bottom) {
+                if isSelecting {
+                    selectionBar
+                }
+            }
             .navigationDestination(for: ClothingItem.self) { item in
                 ClothingDetailView(item: item)
             }
@@ -77,37 +86,66 @@ struct WardrobeView: View {
                 OutfitDetailView(outfit: outfit)
             }
         }
+        .sheet(isPresented: $showCompose) {
+            OutfitComposeView(items: selectedItems) {
+                exitSelection()
+            }
+        }
     }
+
+    // MARK: - 顶部区域
 
     /// 顶部区域：标题 + 分类筛选，随滚动方向显隐（PRD 3.2.2）
     private var header: some View {
         VStack(alignment: .leading, spacing: AppSpacing.m) {
-            VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                Text("我的衣橱")
-                    .font(AppFont.pageTitle)
-                    .foregroundStyle(AppColor.textPrimary)
-                Text("\(items.count) 件单品 · \(outfits.count) 套组合")
-                    .font(AppFont.caption)
-                    .foregroundStyle(AppColor.textSecondary)
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(isSelecting ? "选择单品" : "我的衣橱")
+                        .font(AppFont.pageTitle)
+                        .foregroundStyle(AppColor.textPrimary)
+                    Text(isSelecting
+                         ? "选 2–8 件创建穿搭组合"
+                         : "\(items.count) 件单品 · \(outfits.count) 套组合")
+                        .font(AppFont.caption)
+                        .foregroundStyle(AppColor.textSecondary)
+                }
+                Spacer()
+                if !isSelecting {
+                    Button {
+                        enterSelection()
+                    } label: {
+                        Label("创建组合", systemImage: "square.on.square")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(AppColor.accentDeep)
+                            .padding(.horizontal, AppSpacing.m)
+                            .padding(.vertical, AppSpacing.s)
+                            .background(AppColor.accentSoft, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
             }
             .padding(.horizontal, AppSpacing.l)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: AppSpacing.s) {
-                    ForEach(filterOptions, id: \.self) { option in
-                        CategoryChip(
-                            title: option,
-                            isSelected: filter == option,
-                            action: { filter = option }
-                        )
+            if !isSelecting {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: AppSpacing.s) {
+                        ForEach(filterOptions, id: \.self) { option in
+                            CategoryChip(
+                                title: option,
+                                isSelected: filter == option,
+                                action: { filter = option }
+                            )
+                        }
                     }
+                    .padding(.horizontal, AppSpacing.l)
                 }
-                .padding(.horizontal, AppSpacing.l)
             }
         }
         .padding(.top, AppSpacing.s)
         .padding(.bottom, AppSpacing.m)
     }
+
+    // MARK: - Feed
 
     private var feed: some View {
         ScrollView {
@@ -115,15 +153,9 @@ struct WardrobeView: View {
                 ForEach(entries) { entry in
                     switch entry {
                     case .item(let item):
-                        NavigationLink(value: item) {
-                            ClothingCard(item: item)
-                        }
-                        .buttonStyle(.plain)
+                        itemCell(item)
                     case .outfit(let outfit):
-                        NavigationLink(value: outfit) {
-                            OutfitCard(outfit: outfit)
-                        }
-                        .buttonStyle(.plain)
+                        outfitCell(outfit)
                     }
                 }
             }
@@ -142,7 +174,7 @@ struct WardrobeView: View {
         .onPreferenceChange(WardrobeScrollOffsetKey.self) { offset in
             let delta = offset - lastOffset
             // 向下滚且已离开顶部 → 收起顶栏；向上滚 → 展开
-            if delta < -12, offset < -40, showHeader {
+            if delta < -12, offset < -40, showHeader, !isSelecting {
                 withAnimation(.easeInOut(duration: 0.2)) { showHeader = false }
             } else if delta > 12, !showHeader {
                 withAnimation(.easeInOut(duration: 0.2)) { showHeader = true }
@@ -155,6 +187,122 @@ struct WardrobeView: View {
             }
         }
     }
+
+    @ViewBuilder
+    private func itemCell(_ item: ClothingItem) -> some View {
+        if isSelecting {
+            Button {
+                toggleSelection(item)
+            } label: {
+                ClothingCard(item: item)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: AppRadius.card)
+                            .stroke(isSelected(item) ? AppColor.accent : .clear, lineWidth: 2.5)
+                    }
+                    .overlay(alignment: .topTrailing) {
+                        Image(systemName: isSelected(item) ? "checkmark.circle.fill" : "circle")
+                            .font(.system(size: 22))
+                            .foregroundStyle(isSelected(item) ? AppColor.accent : AppColor.textSecondary)
+                            .background(Circle().fill(AppColor.surface.opacity(0.9)))
+                            .padding(AppSpacing.s)
+                    }
+            }
+            .buttonStyle(.plain)
+        } else {
+            NavigationLink(value: item) {
+                ClothingCard(item: item)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    @ViewBuilder
+    private func outfitCell(_ outfit: Outfit) -> some View {
+        if isSelecting {
+            // 组合不能被选入组合，多选模式下置灰
+            OutfitCard(outfit: outfit)
+                .opacity(0.35)
+        } else {
+            NavigationLink(value: outfit) {
+                OutfitCard(outfit: outfit)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    // MARK: - 多选模式
+
+    private var selectionBar: some View {
+        VStack(spacing: AppSpacing.s) {
+            if !selectedItems.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: AppSpacing.s) {
+                        ForEach(selectedItems) { item in
+                            Group {
+                                if let image = ImageStore.load(item.imageFileName) {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .scaledToFill()
+                                } else {
+                                    AppColor.surfaceSecondary
+                                }
+                            }
+                            .frame(width: 44, height: 44)
+                            .background(AppColor.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: AppRadius.control))
+                            .onTapGesture { toggleSelection(item) }
+                        }
+                    }
+                    .padding(.horizontal, AppSpacing.l)
+                }
+            }
+            HStack(spacing: AppSpacing.m) {
+                Button("取消") { exitSelection() }
+                    .foregroundStyle(AppColor.textSecondary)
+                Spacer()
+                Text("已选 \(selectedItems.count)/8")
+                    .font(AppFont.caption)
+                    .foregroundStyle(AppColor.textSecondary)
+                Button("下一步") { showCompose = true }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .disabled(selectedItems.count < 2)
+                    .opacity(selectedItems.count < 2 ? 0.5 : 1)
+            }
+            .padding(.horizontal, AppSpacing.l)
+        }
+        .padding(.vertical, AppSpacing.s)
+        .background(.bar)
+    }
+
+    private func isSelected(_ item: ClothingItem) -> Bool {
+        selectedItems.contains { $0.persistentModelID == item.persistentModelID }
+    }
+
+    private func toggleSelection(_ item: ClothingItem) {
+        if let index = selectedItems.firstIndex(where: { $0.persistentModelID == item.persistentModelID }) {
+            selectedItems.remove(at: index)
+        } else if selectedItems.count < 8 {
+            selectedItems.append(item)
+        }
+    }
+
+    private func enterSelection() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isSelecting = true
+            showHeader = true
+            // 多选针对单品，切出「组合」筛选
+            if filter == "组合" { filter = "全部" }
+        }
+    }
+
+    private func exitSelection() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isSelecting = false
+            selectedItems = []
+        }
+    }
+
+    // MARK: - 空状态
 
     private var filteredEmptyState: some View {
         VStack(spacing: AppSpacing.m) {
