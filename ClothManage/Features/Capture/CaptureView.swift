@@ -14,6 +14,8 @@ struct CaptureView: View {
     @State private var showCamera = false
     @State private var showPermissionAlert = false
     @State private var processingText: String?
+    /// 图片质量选项（我的页设置）：压缩模式降低 JPEG 质量
+    @AppStorage("imageQuality") private var imageQuality = "原图"
 
     private var cameraAvailable: Bool {
         UIImagePickerController.isSourceTypeAvailable(.camera)
@@ -178,6 +180,7 @@ struct CaptureView: View {
             #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil
         )
         let toSave = drafts
+        let jpegQuality: CGFloat = imageQuality == "压缩" ? 0.6 : 0.85
         processingText = "正在保存…"
 
         Task {
@@ -189,13 +192,13 @@ struct CaptureView: View {
                         let usesCutout = !draft.useOriginal && draft.cutoutImage != nil
                         let displayData = usesCutout
                             ? draft.displayImage.pngData()
-                            : draft.displayImage.jpegData(compressionQuality: 0.85)
+                            : draft.displayImage.jpegData(compressionQuality: jpegQuality)
                         guard let data = displayData,
                               let fileName = try? ImageStore.save(data, fileExtension: usesCutout ? "png" : "jpg")
                         else { return }
 
                         var originalFileName: String?
-                        if usesCutout, let originalData = draft.originalImage.jpegData(compressionQuality: 0.85) {
+                        if usesCutout, let originalData = draft.originalImage.jpegData(compressionQuality: jpegQuality) {
                             originalFileName = try? ImageStore.save(originalData)
                         }
                         result.append(SavedDraft(
