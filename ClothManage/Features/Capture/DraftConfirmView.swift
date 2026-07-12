@@ -120,16 +120,15 @@ struct DraftConfirmView: View {
     }
 
     private func categoryGrid(for draft: Binding<ClothingDraft>) -> some View {
-        let columns = [GridItem(.adaptive(minimum: 76), spacing: AppSpacing.s)]
-        return LazyVGrid(columns: columns, spacing: AppSpacing.s) {
-            ForEach(ClothingCategory.allCases) { category in
-                CategoryChip(
-                    title: category.displayName,
-                    isSelected: draft.wrappedValue.category == category,
-                    action: { draft.wrappedValue.category = category }
-                )
+        ChipGrid(
+            titles: ClothingCategory.allCases.map(\.displayName),
+            isSelected: { draft.wrappedValue.category.displayName == $0 },
+            onTap: { title in
+                if let category = ClothingCategory(rawValue: title) {
+                    draft.wrappedValue.category = category
+                }
             }
-        }
+        )
     }
 
     private var bottomBar: some View {

@@ -28,6 +28,7 @@ struct WardrobeView: View {
     @AppStorage("wardrobeFilter") private var filter = "全部"
     @State private var showHeader = true
     @State private var lastOffset: CGFloat = 0
+    @State private var headerHeight: CGFloat = 140
     /// 多选模式（创建组合，PRD 3.3.1）
     @State private var isSelecting = false
     @State private var selectedItems: [ClothingItem] = []
@@ -40,7 +41,7 @@ struct WardrobeView: View {
     ]
 
     private var filterOptions: [String] {
-        ["全部"] + ClothingCategory.allCases.map(\.displayName) + ["组合"]
+        ["全部", "组合"] + ClothingCategory.allCases.map(\.displayName)
     }
 
     private var entries: [WardrobeEntry] {
@@ -63,17 +64,12 @@ struct WardrobeView: View {
                 if items.isEmpty && outfits.isEmpty {
                     emptyState
                 } else {
-                    VStack(spacing: 0) {
-                        if showHeader {
-                            header
-                                .transition(.move(edge: .top).combined(with: .opacity))
-                        }
-                        feed
-                    }
+                    content
                 }
             }
             .background(AppColor.background)
             .toolbar(.hidden, for: .navigationBar)
+            .toolbar(isSelecting ? .hidden : .automatic, for: .tabBar)
             .safeAreaInset(edge: .bottom) {
                 if isSelecting {
                     selectionBar
@@ -93,9 +89,49 @@ struct WardrobeView: View {
         }
     }
 
+    /// 顶栏悬浮在内容上方，背景为线性渐隐模糊；内容从其下方滚过
+    private var content: some View {
+        ZStack(alignment: .top) {
+            feed
+            if showHeader {
+                header
+                    .background(headerBlurBackground)
+                    .background(
+                        GeometryReader { proxy in
+                            Color.clear.preference(
+                                key: WardrobeHeaderHeightKey.self,
+                                value: proxy.size.height
+                            )
+                        }
+                    )
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .onPreferenceChange(WardrobeHeaderHeightKey.self) { headerHeight = $0 }
+    }
+
+    /// 线性模糊：上实下透，避免实色背景生硬遮挡卡片
+    private var headerBlurBackground: some View {
+        Rectangle()
+            .fill(.ultraThinMaterial)
+            .padding(.bottom, -28)
+            .mask(
+                LinearGradient(
+                    stops: [
+                        .init(color: .black, location: 0),
+                        .init(color: .black, location: 0.72),
+                        .init(color: .clear, location: 1),
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .ignoresSafeArea(edges: .top)
+            .allowsHitTesting(false)
+    }
+
     // MARK: - 顶部区域
 
-    /// 顶部区域：标题 + 分类筛选，随滚动方向显隐（PRD 3.2.2）
     private var header: some View {
         VStack(alignment: .leading, spacing: AppSpacing.m) {
             HStack(alignment: .firstTextBaseline) {
@@ -164,6 +200,7 @@ struct WardrobeView: View {
                 }
                 .id("wardrobeTop")
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: items.count + outfits.count)
+                .padding(.top, headerHeight + AppSpacing.s)
                 .padding(.horizontal, AppSpacing.l)
                 .padding(.bottom, AppSpacing.xl)
                 .background(
@@ -322,25 +359,27 @@ struct WardrobeView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: AppSpacing.l) {
-            EmptyStateIcon(systemName: "tshirt")
-            Text("衣橱还是空的")
-                .font(AppFont.pageTitle)
-                .foregroundStyle(AppColor.textPrimary)
-            Text("拍下或上传你的第一件衣服\n开始整理你的专属衣橱")
-                .font(AppFont.body)
-                .foregroundStyle(AppColor.textSecondary)
-                .multilineTextAlignment(.center)
+        EmptyStagePage(
+            icon: "tshirt",
+            title: "衣橱还是空的",
+            subtitle: "拍下或上传你的第一件衣服\n开始整理你的专属衣橱"
+        ) {
             Button("添加第一件衣服", action: onAddTapped)
                 .buttonStyle(PrimaryButtonStyle())
                 .padding(.top, AppSpacing.s)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
 private struct WardrobeScrollOffsetKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+private struct WardrobeHeaderHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 140
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
     }

@@ -44,6 +44,7 @@ struct ClothingDetailView: View {
         .background(AppColor.background)
         .navigationTitle(item.name.isEmpty ? "衣物详情" : item.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .toolbar {
             ToolbarItem(placement: .destructiveAction) {
                 Button(role: .destructive) {
@@ -66,15 +67,14 @@ struct ClothingDetailView: View {
     }
 
     private var categoryChips: some View {
-        let columns = [GridItem(.adaptive(minimum: 76), spacing: AppSpacing.s)]
-        return LazyVGrid(columns: columns, spacing: AppSpacing.s) {
-            ForEach(ClothingCategory.allCases) { category in
-                CategoryChip(
-                    title: category.displayName,
-                    isSelected: item.category == category,
-                    action: { item.category = category }
-                )
+        ChipGrid(
+            titles: ClothingCategory.allCases.map(\.displayName),
+            isSelected: { item.category.displayName == $0 },
+            onTap: { title in
+                if let category = ClothingCategory(rawValue: title) {
+                    item.category = category
+                }
             }
-        }
+        )
     }
 }

@@ -51,8 +51,8 @@ enum DemoSeeder {
             let images = outfitItems.compactMap { ImageStore.load($0.imageFileName) }
             let cover = CollageRenderer.render(images: images)
             var coverFile: String?
-            if let data = cover.jpegData(compressionQuality: 0.9) {
-                coverFile = try? ImageStore.save(data)
+            if let data = cover.pngData() {
+                coverFile = try? ImageStore.save(data, fileExtension: "png")
             }
             context.insert(Outfit(
                 name: "初秋通勤",

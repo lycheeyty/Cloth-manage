@@ -64,7 +64,21 @@ struct OutfitDetailView: View {
         .background(AppColor.background)
         .navigationTitle(outfit.name.isEmpty ? "组合详情" : outfit.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .toolbar {
+            if let cover = outfit.coverImageFileName, let coverImage = ImageStore.load(cover) {
+                ToolbarItem(placement: .primaryAction) {
+                    ShareLink(
+                        item: Image(uiImage: coverImage),
+                        preview: SharePreview(
+                            outfit.name.isEmpty ? "穿搭组合" : outfit.name,
+                            image: Image(uiImage: coverImage)
+                        )
+                    ) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }
+            }
             ToolbarItem(placement: .destructiveAction) {
                 Button(role: .destructive) {
                     showDeleteConfirm = true
@@ -89,16 +103,11 @@ struct OutfitDetailView: View {
     }
 
     private var sceneChips: some View {
-        let chipColumns = [GridItem(.adaptive(minimum: 72), spacing: AppSpacing.s)]
-        return LazyVGrid(columns: chipColumns, spacing: AppSpacing.s) {
-            ForEach(OutfitScene.presets, id: \.self) { scene in
-                CategoryChip(
-                    title: scene,
-                    isSelected: outfit.scene == scene,
-                    action: { outfit.scene = scene }
-                )
-            }
-        }
+        ChipGrid(
+            titles: OutfitScene.presets,
+            isSelected: { outfit.scene == $0 },
+            onTap: { outfit.scene = $0 }
+        )
     }
 
     private func removeItem(_ item: ClothingItem) {

@@ -11,10 +11,8 @@ enum CollageRenderer {
         let inset: CGFloat = 24
 
         let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { context in
-            // 固定浅色底，保证封面在深浅色模式下观感一致
-            UIColor(red: 0.957, green: 0.953, blue: 0.984, alpha: 1).setFill()
-            context.fill(CGRect(origin: .zero, size: size))
+        return renderer.image { _ in
+            // 透明底：卡片背景色由 App 主题提供，深浅色模式各自适配
 
             for (index, image) in images.enumerated() {
                 let col = index % cols

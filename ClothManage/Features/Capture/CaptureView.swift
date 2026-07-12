@@ -13,6 +13,8 @@ struct CaptureView: View {
     @State private var drafts: [ClothingDraft] = []
     @State private var showCamera = false
     @State private var showPermissionAlert = false
+    @State private var showAddMenu = false
+    @State private var showPhotoPicker = false
     @State private var processingText: String?
     /// 图片质量选项（我的页设置）：压缩模式降低 JPEG 质量
     @AppStorage("imageQuality") private var imageQuality = "原图"
@@ -38,7 +40,22 @@ struct CaptureView: View {
                     )
                 }
             }
+            // 确认信息/处理中时隐藏底部 Tab，聚焦当前流程
+            .toolbar(drafts.isEmpty && processingText == nil ? .automatic : .hidden, for: .tabBar)
         }
+        .confirmationDialog("添加衣服", isPresented: $showAddMenu, titleVisibility: .hidden) {
+            if cameraAvailable {
+                Button("拍照") { openCamera() }
+            }
+            Button("从相册上传") { showPhotoPicker = true }
+            Button("取消", role: .cancel) {}
+        }
+        .photosPicker(
+            isPresented: $showPhotoPicker,
+            selection: $pickerItems,
+            maxSelectionCount: 9,
+            matching: .images
+        )
         .fullScreenCover(isPresented: $showCamera) {
             CameraPicker(
                 onCapture: { image in
@@ -88,42 +105,27 @@ struct CaptureView: View {
     // MARK: - 子视图
 
     private var pickerPrompt: some View {
-        VStack(spacing: AppSpacing.l) {
-            EmptyStateIcon(systemName: "camera.viewfinder")
-            Text("添加衣服")
-                .font(AppFont.pageTitle)
-                .foregroundStyle(AppColor.textPrimary)
-            Text("拍下或上传衣物照片\n自动抠图后归入你的衣橱")
-                .font(AppFont.body)
-                .foregroundStyle(AppColor.textSecondary)
-                .multilineTextAlignment(.center)
+        EmptyStagePage(
+            icon: "camera.viewfinder",
+            title: "添加衣服",
+            subtitle: "拍下或上传衣物照片\n自动抠图后归入你的衣橱"
+        ) {
+            VStack(spacing: AppSpacing.s) {
+                Button {
+                    showAddMenu = true
+                } label: {
+                    Label("添加衣服", systemImage: "plus")
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .padding(.top, AppSpacing.s)
 
-            Button {
-                openCamera()
-            } label: {
-                Label("拍照", systemImage: "camera")
-            }
-            .buttonStyle(PrimaryButtonStyle())
-            .disabled(!cameraAvailable)
-            .padding(.top, AppSpacing.s)
-
-            PhotosPicker(selection: $pickerItems, maxSelectionCount: 9, matching: .images) {
-                Label("从相册选择（最多 9 张）", systemImage: "photo.on.rectangle")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(AppColor.accentDeep)
-                    .padding(.horizontal, AppSpacing.xl)
-                    .padding(.vertical, 14)
-                    .background(AppColor.accentSoft, in: Capsule())
-            }
-
-            if !cameraAvailable {
-                Text("当前设备没有相机（模拟器），请使用相册上传")
-                    .font(AppFont.caption)
-                    .foregroundStyle(AppColor.textSecondary)
+                if !cameraAvailable {
+                    Text("当前设备没有相机（模拟器），仅支持相册上传")
+                        .font(AppFont.caption)
+                        .foregroundStyle(AppColor.textSecondary)
+                }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppColor.background)
     }
 
     private func processingView(_ text: String) -> some View {
