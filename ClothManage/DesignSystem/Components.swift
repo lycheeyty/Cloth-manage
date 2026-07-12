@@ -97,7 +97,6 @@ struct EmptyStagePage<Buttons: View>: View {
             buttons()
                 .frame(height: 130, alignment: .top)
             Spacer()
-            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, AppSpacing.xl)

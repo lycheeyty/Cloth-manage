@@ -60,6 +60,9 @@ struct ClothingDetailView: View {
                 if let original = item.originalImageFileName {
                     ImageStore.delete(original)
                 }
+                if let cutout = item.cutoutImageFileName {
+                    ImageStore.delete(cutout)
+                }
                 context.delete(item)
                 dismiss()
             }

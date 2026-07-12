@@ -27,7 +27,10 @@ final class ScreenshotTourTests: XCTestCase {
         snap(app, "01-衣橱-空状态-\(appearance)")
         app.tabBars.buttons["添加"].tap()
         pause(1)
-        snap(app, "02-添加-入口-\(appearance)")
+        snap(app, "02-添加-菜单-\(appearance)")
+        // 点击空白处收起菜单
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3)).tap()
+        pause(1)
         app.terminate()
 
         // ---- 第 2 段：有数据主流程 ----
@@ -80,14 +83,19 @@ final class ScreenshotTourTests: XCTestCase {
         snap(app, "10-我的-\(appearance)")
         app.terminate()
 
-        // ---- 第 3 段：发布确认页 + 订阅页（启动参数直达，不依赖 UI 点击）----
+        // ---- 第 3 段：发布页（--seed-drafts 自动进入）----
         app = XCUIApplication()
-        app.launchArguments = ["--seed-demo", "--seed-drafts", "--show-subscription", flag]
+        app.launchArguments = ["--seed-demo", "--seed-drafts", flag]
+        app.launch()
+        pause(5)
+        snap(app, "12-发布页-\(appearance)")
+        app.terminate()
+
+        // ---- 第 4 段：订阅页（启动参数直达）----
+        app = XCUIApplication()
+        app.launchArguments = ["--seed-demo", "--show-subscription", flag]
         app.launch()
         pause(2)
-        app.tabBars.buttons["添加"].tap()
-        pause(2)
-        snap(app, "12-发布-确认页-\(appearance)")
         app.tabBars.buttons["我的"].tap()
         pause(2)
         snap(app, "11-订阅页-\(appearance)")

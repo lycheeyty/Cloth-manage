@@ -129,6 +129,9 @@ struct ProfileView: View {
             if let original = item.originalImageFileName {
                 referenced.insert(original)
             }
+            if let cutout = item.cutoutImageFileName {
+                referenced.insert(cutout)
+            }
         }
         for outfit in outfits {
             if let cover = outfit.coverImageFileName {

@@ -39,6 +39,7 @@ enum DemoSeeder {
                 name: spec.0,
                 category: spec.1,
                 imageFileName: fileName,
+                cutoutImageFileName: fileName,
                 createdAt: Date().addingTimeInterval(TimeInterval(-offset) * 3600)
             )
             context.insert(item)

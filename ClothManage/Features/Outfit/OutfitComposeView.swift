@@ -102,10 +102,13 @@ struct OutfitComposeView: View {
 
     private func prepareCanvas() {
         guard transforms.isEmpty else { return }
-        canvasImages = items.map {
-            ThumbnailStore.shared.thumbnail(for: $0.imageFileName)
-                ?? ImageStore.load($0.imageFileName)
+        // 优先用透明抠图并裁到实际轮廓：拖拽热区/描边贴合衣物本身
+        canvasImages = items.map { item in
+            let fileName = item.cutoutImageFileName ?? item.imageFileName
+            let image = ThumbnailStore.shared.thumbnail(for: fileName)
+                ?? ImageStore.load(fileName)
                 ?? UIImage()
+            return CutoutService.croppedToOpaqueBounds(image)
         }
         transforms = Self.defaultTransforms(count: items.count)
     }
@@ -149,8 +152,12 @@ struct OutfitComposeView: View {
     @MainActor
     private func publish() {
         isSaving = true
-        // 导出用全尺寸图，按画布同样的归一化位置重新渲染
-        let fullImages = items.map { ImageStore.load($0.imageFileName) ?? UIImage() }
+        // 导出用全尺寸抠图（同样裁到实际轮廓），按画布归一化位置渲染
+        let fullImages = items.map { item in
+            let fileName = item.cutoutImageFileName ?? item.imageFileName
+            let image = ImageStore.load(fileName) ?? UIImage()
+            return CutoutService.croppedToOpaqueBounds(image)
+        }
         let exportSize = CGSize(width: 900, height: 1200)
         let renderer = ImageRenderer(content: CollageExportView(
             images: fullImages,
@@ -186,11 +193,19 @@ private struct CanvasItemView: View {
     @State private var pinchStartScale: CGFloat?
 
     var body: some View {
-        let baseSide = canvasSize.width * 0.48
+        // 尺寸按衣物实际轮廓的宽高比计算，描边与热区贴合衣物本身
+        let side = canvasSize.width * 0.48 * transform.scale
+        let aspect = image.size.width / max(image.size.height, 1)
+        let width = aspect >= 1 ? side : side * aspect
+        let height = aspect >= 1 ? side / aspect : side
         Image(uiImage: image)
             .resizable()
-            .scaledToFit()
-            .frame(width: baseSide * transform.scale, height: baseSide * transform.scale)
+            .frame(width: width, height: height)
+            .overlay {
+                Rectangle()
+                    .stroke(style: StrokeStyle(lineWidth: 1.2, dash: [5, 4]))
+                    .foregroundStyle(AppColor.accent.opacity(0.55))
+            }
             .position(
                 x: transform.center.x * canvasSize.width,
                 y: transform.center.y * canvasSize.height
@@ -232,14 +247,13 @@ private struct CollageExportView: View {
             ForEach(images.indices, id: \.self) { index in
                 if transforms.indices.contains(index) {
                     let transform = transforms[index]
-                    let baseSide = size.width * 0.48
+                    let side = size.width * 0.48 * transform.scale
+                    let aspect = images[index].size.width / max(images[index].size.height, 1)
+                    let width = aspect >= 1 ? side : side * aspect
+                    let height = aspect >= 1 ? side / aspect : side
                     Image(uiImage: images[index])
                         .resizable()
-                        .scaledToFit()
-                        .frame(
-                            width: baseSide * transform.scale,
-                            height: baseSide * transform.scale
-                        )
+                        .frame(width: width, height: height)
                         .position(
                             x: transform.center.x * size.width,
                             y: transform.center.y * size.height
